@@ -1,3 +1,5 @@
+import numpy as np
+
 class Model:
 	def __init__(self, in_layer, out_layer):
 		self.in_layer = in_layer
