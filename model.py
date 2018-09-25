@@ -40,3 +40,37 @@ class Model:
 			curr_layer.set_param_grads(grad_L_curr, curr_layer.parent.L)
 			prev = curr_layer
 			curr_layer = curr_layer.parent
+
+def test(model, test_inp, test_out):
+	res = model.predict(test_inp)
+	return np.count_nonzero(res == test_out) / test_out.size
+
+def train(model, train_X, train_Y, train_labels, epochs, batch_size, report):
+		model.enable_training()
+		m = train_X.shape[1]
+
+		for e in range(epochs):
+			prog = 0
+			perm = list(np.random.permutation(m))
+			randomized_train_X = train_X[:, perm]
+			randomized_train_Y = train_Y[:, perm]
+
+			num_batches = m // batch_size
+
+			for i in range(0, num_batches):
+				batch_X = randomized_train_X[:, i * batch_size : (i + 1) * batch_size]
+				batch_Y = randomized_train_Y[:, i * batch_size : (i + 1) * batch_size]
+				model.backprop(batch_X, batch_Y, batch_size)
+
+				curr_layer = model.in_layer.child
+				while curr_layer:
+					curr_layer.optimizer.update()
+					curr_layer = curr_layer.child
+				
+				prog+=1
+				if (not prog % 100) and report:
+					print("Epoch ", e, " progress: ", prog , " / ", num_batches)
+
+			print("Epoch", e, " ", test(model, train_X, train_labels))
+
+		model.disable_training()
